@@ -1,0 +1,40 @@
+--  Esse teste foi feito com pressa. Por isso, peço para relevar caso veja o uso de "ORDER BY N" ou "GROUP BY N", assim como nomes de variáveis que possam estar não explicitando seu conteúdo apropriadamente
+-----------------------------------------
+------------- Exercício 2 ---------------
+-----------------------------------------
+
+-- QUESTÃO 1. CRIAR COLUNA COM ESTADO BASEADO NO DDD
+-- Não entendi se a idéia seria criar o estado a partir de informação de fora, ou baseado no que já temos. 
+-- Se for para usar informação Nesse sentido, sei que está errado pois temos ddds repetidos (ou seja, a pessoa poderia ser de um estado mas tem numero de outro)
+
+-- Também imagino que não seja para utilizar view, pois aí não seria "criar coluna".
+
+-- Dessa forma, irei apenas adicionar a coluna e fazer um update e delete nela baseado na informação real de DDD, de uma tabela que criei com estas informações. 
+-- por estar usando o free tier, nao pude rodar este merge. Mas deixei aqui por ser a forma mais pratica de ter um update e delete na mesma query.
+
+-- 1.1 MERGE
+ALTER TABLE `project-iury.greenpeace.random_user`
+ADD COLUMN ddd_estado STRING;
+
+
+MERGE `project-iury.greenpeace.random_user` AS target
+USING (
+
+  SELECT random_user.login_md5 AS login_md5-- chave de união
+       , estado_ddd.estado     AS ddd_estado
+  FROM `project-iury.greenpeace.random_user`     AS random_user
+  LEFT JOIN `project-iury.greenpeace.estado_ddd` AS estado_ddd
+    ON CAST(REGEXP_REPLACE(SPLIT(random_user.cell, ' ')[SAFE_OFFSET(0)], r'[^0-9]', '') AS INT64) = estado_ddd.ddd
+  WHERE random_user.location_country = 'Brazil' -- se não for brasil, não é estritamente um DDD
+
+) AS source
+
+ON target.login_md5 = source.login_md5
+
+WHEN MATCHED THEN
+UPDATE SET ddd_estado = source.ddd_estado
+
+WHEN NOT MATCHED AND (source.ddd_estado IS NULL OR source.login_md5 IS NULL) THEN --vai deixar somente brasileiros com ddd válidos
+DELETE
+
+

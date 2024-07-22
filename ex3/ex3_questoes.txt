@@ -1,0 +1,25 @@
+--  Esse teste foi feito com pressa. Por isso, peço para relevar caso veja o uso de "ORDER BY N" ou "GROUP BY N", assim como nomes de variáveis que possam estar não explicitando seu conteúdo apropriadamente
+
+-----------------------------------------
+------------- Exercício 3 ---------------
+-----------------------------------------
+
+-- QUESTÃO 1. No cenário em que o usuário gp_user gostaria de ter acesso para a tabela press_data, qual seria o código para disponibilizá-la?
+-- R: Caso seja apenas acesso de leitura: GRANT SELECT ON TABLE press_data TO gp_user; Caso seja acesso total: GRANT ALL ...
+
+-- QUESTÃO 1. a) Em algumas vezes, mesmo após dar permissão uma vez, a tabela é reescrita com o parâmetro drop e perde as permissões.
+--               Qual o código que deve ser feito para que a tabela sempre herde os privilégios de forma padrão?
+-- R: Caso o acesso possa ser dado a nível de schema (que seria o dataset), então para acesso de leitura: GRANT USAGE ON SCHEMA <nome do schema> TO gp_user. Para acesso total, trocar USAGE por ALL;
+--    Mas se não for este caso, a melhor forma seria utilizar um terraform, que recriaria as permissões (caso estas estivessem também definidas através dele) ao recriar a tabela (caso também através do terraform).
+
+-- QUESTÃO 2. Por exemplo, você deseja criar uma nova tabela que contenha apenas os registros de um determinado ano. Qual seria o código SQL utilizado para criar essa nova tabela no Redshift?
+-- R: Nesse caso, eu recomendaria utilizar uma view, ou view materializada com um WHERE EXTRACT(YEAR FROM data) = XXXX
+
+-- QUESTÃO 3. Por exemplo, você deseja calcular a soma de vendas por mês e criar uma nova tabela com esses dados agregados. Qual seria o código SQL utilizado para essa transformação no Redshift?
+CREATE VIEW venda_mensal AS
+SELECT DATE_TRUNC('month', data) AS mes
+	 , SUM(valor_venda) AS venda_mensal
+FROM vendas
+GROUP BY 1
+ORDER BY 1 -- deixo aqui esse order by para quando você rodar a query. Mas em uma view é desnecessário;
+
